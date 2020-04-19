@@ -54,6 +54,17 @@ def printVisited(visited):
         pen.pendown()
         pen.fillcolor('green')
         drawSquare()
+
+def printPath(path):
+    for node in path:
+        i = node[0]
+        j = node[1]
+        pen.penup()
+        pen.goto((i-50)*5,(j-50)*5)
+        pen.pendown()
+        pen.fillcolor('blue')
+        drawSquare()
+    screen.update()
        
 
 
@@ -89,10 +100,11 @@ print(s_x,s_y)
 def EuclidDis(x_0,y_0,x_1,y_1):
     return math.sqrt(((x_1-x_0)**2) + ((y_1-y_0)**2))
 
-def GreedySearch(start_x, start_y, end_x, end_y, visited):
+def GreedySearch(start_x, start_y, end_x, end_y, visited, path):
     actual_x = start_x
     actual_y = start_y
-    visited.append((actual_x, actual_y))    
+    visited.append((actual_x, actual_y))
+    path.append((actual_x,actual_y))
     while(grafo[actual_x,actual_y]!=1):
         next_x = 10000
         next_y = 10000
@@ -106,12 +118,14 @@ def GreedySearch(start_x, start_y, end_x, end_y, visited):
                 visited.append((i,j))
                 actual_x = next_x
                 actual_y = next_y
+                path.append((actual_x,actual_y))
             
 
 visited = []
-
+path =[]
 printGraph()
-GreedySearch(s_x,s_y,x,y,visited)
+GreedySearch(s_x,s_y,x,y,visited,path)
 printVisited(visited)
+printPath(path)
 screen.mainloop()
 
