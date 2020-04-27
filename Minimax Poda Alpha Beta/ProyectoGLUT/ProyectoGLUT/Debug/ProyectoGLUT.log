@@ -1,0 +1,12 @@
+﻿  ProyectoGLUT.cpp
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(60,6): warning C4244: 'argumento': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(59,6): warning C4244: 'argumento': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(310,20): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(334,21): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(342,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(350,21): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(475,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(483,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(495,22): warning C4018: '<': no coinciden signed/unsigned
+C:\Users\José Eduardo\source\repos\ProyectoGLUT\ProyectoGLUT\ProyectoGLUT.cpp(506,22): warning C4018: '<': no coinciden signed/unsigned
+  ProyectoGLUT.vcxproj -> C:\Users\José Eduardo\source\repos\ProyectoGLUT\Debug\ProyectoGLUT.exe
