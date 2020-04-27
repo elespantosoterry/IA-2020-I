@@ -19,128 +19,14 @@
 
 using namespace std;
 
-
+int index;
 int ganador = 24;
 bool win = 0;
 int nJugadas = 0;
 int dificultad = 0;
 char empezador = ' ';
 vector<int> posiciones;
-bool fin = 0;
-int empieza;
 
-
-
-
-///////////////// PARTE GRAFICA ////////////////////////
-
-
-void dibujarTablero()
-{
-	glLineWidth(10);
-	glBegin(GL_LINES);
-	glColor3d(255, 255, 0);
-	glVertex2d(-125, 400);
-	glVertex2d(-125, -400);
-	glVertex2d(125, 400);
-	glVertex2d(125, -400);
-	glVertex2d(-400, 125);
-	glVertex2d(400, 125);
-	glVertex2d(-400, -125);
-	glVertex2d(400, -125);
-	glEnd();
-}
-
-void dibujarCirculo(int x, int y) {
-	glBegin(GL_LINE_LOOP);
-	glColor3d(255, 255, 255);
-	for (int i = 0; i <= 100; i++) {
-		glVertex2f(
-			x + (50 * cos(i * 2.0f * PI / 100)),
-			y + (50 * sin(i * 2.0f * PI / 100))
-		);
-	}
-	glEnd();
-}
-
-
-
-void dibujarX(int x, int y) {
-	glBegin(GL_LINES);
-	glColor3d(255, 0, 0);
-	glVertex2d(x + (-45), y + 45);
-	glVertex2d(x + 45, y + (-45));
-	glVertex2d(x + 45, y + 45);
-	glVertex2d(x + (-45), y + (-45));
-	glEnd();
-}
-
-void dibujarJugada(bool simb, int pos) {
-	switch (pos) {
-	case 0:
-		if (simb) dibujarX(-250, 250);
-		else dibujarCirculo(-250, 250);
-		break;
-	case 1:
-		if (simb) dibujarX(0, 250);
-		else dibujarCirculo(0, 250);
-		break;
-	case 2:
-		if (simb) dibujarX(250, 250);
-		else dibujarCirculo(250, 250);
-		break;
-	case 3:
-		if (simb) dibujarX(-250, 0);
-		else dibujarCirculo(-250, 0);
-		break;
-	case 4:
-		if (simb) dibujarX(0, 0);
-		else dibujarCirculo(0, 0);
-		break;
-	case 5:
-		if (simb) dibujarX(250, 0);
-		else dibujarCirculo(250, 0);
-		break;
-	case 6:
-		if (simb) dibujarX(-250, -250);
-		else dibujarCirculo(-250, -250);
-		break;
-	case 7:
-		if (simb) dibujarX(0, -250);
-		else dibujarCirculo(0, -250);
-		break;
-	case 8:
-		if (simb) dibujarX(0, -250);
-		else dibujarCirculo(0, -250);
-		break;
-	case 9:
-		if (simb) dibujarX(250, -250);
-		else dibujarCirculo(250, -250);
-		break;
-
-
-	}
-}
-
-void dibujarGanador(int g) {
-	glClear(GL_COLOR_BUFFER_BIT);
-	char pc[17] = "Gano Computadora";
-	char j[13] = "Gano Jugador";
-	char empate[7] = "Empate";
-
-	glRasterPos2i(-200, 0);
-	if (g == 1)
-		for (int i = 0; i < 17; i++)
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, pc[i]);
-	else if (g == 0)
-		for (int i = 0; i < 13; i++)
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, j[i]);
-	else
-		for (int i = 0; i < 7; i++)
-			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, empate[i]);
-
-
-}
 
 
 
@@ -154,6 +40,9 @@ struct tablero {
 		this->m_tablero.push_back('b'); this->m_tablero.push_back('b'); this->m_tablero.push_back('b');
 	}
 };
+
+
+
 class Node {
 public:
 	bool hoja = 0;
@@ -162,6 +51,8 @@ public:
 	vector<Node*> hijos;
 	tablero m_te;
 	int nuevoLugar;
+	int indicePosicion;
+
 	Node() {
 		peso = 0;
 	}
@@ -315,20 +206,38 @@ bool gameOver(tablero a) {
 	ganador = 24;
 	return true;
 }
+void printTablero(tablero m_t) {
+	cout << "imprimiendo tablero\n";
+	for (int i = 0; i < 3; i++) {
+		cout << m_t.m_tablero[i] << " ";
+	}
+	cout << endl;
+	for (int i = 3; i < 6; i++) {
+		cout << m_t.m_tablero[i] << " ";
+	}
+	cout << endl;
+	for (int i = 6; i < 9; i++) {
+		cout << m_t.m_tablero[i] << " ";
+	}
+	cout << endl;
+}
+
 class Arbol {
 public:
 	Node* root;
 	int altura;
 	tablero m_p_t;
-	vector<int> indices;
-	bool flag;
+	bool flag = 1;
+	char op = 'o';
 	Arbol() {
 		root = new Node;
 	}
-	void setTablero(tablero m_o, Node* nodoo, int pro) {
+	void setTablero(tablero m_o, Node* nodoo, int pro, bool flag) {
+		//cout << "haciendo arbol con profundidad: " << pro << endl;
+		vector<int> indices;
 		m_p_t = m_o;
 		int p = 0;
-		if (pro == dificultad) {
+		if (pro > dificultad) {
 			return;
 		}
 		for (int i = 0; i < m_o.m_tablero.size(); i++) {
@@ -338,130 +247,133 @@ public:
 			}
 		}
 		tablero m_h = m_o;
-		while (p--) {
-			for (int i = 0; i < indices.size(); i++) {
+		for (int i = 0; i < indices.size(); i++) {
+			if (pro % 2 == 0)
+				m_h.m_tablero[indices[i]] = 'x';
+			else
 				m_h.m_tablero[indices[i]] = 'o';
-				Node* p = new Node(nodoo);
-				p->m_te = m_h;
-				nodoo->hijos.push_back(p);
-				m_h = m_o;
-			}
+			Node* k = new Node(nodoo);
+			k->m_te = m_h;
+			k->indicePosicion = indices[i];
+			nodoo->hijos.push_back(k);
+			m_h = m_o;
 		}
 		for (int i = 0; i < nodoo->hijos.size(); i++) {
-			setTablero(nodoo->hijos[i]->m_te, nodoo->hijos[i], pro--);
+			setTablero(nodoo->hijos[i]->m_te, nodoo->hijos[i], pro + 1, flag);
 		}
 	}
 	int staticEvaluation(Node* m_n) {
+		//cout << "haciendo casos\n";
 		int contMe = 0, contYou = 0;
 		//caso 1.1
 		if (m_n->m_te.m_tablero[0] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[1] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[1] == 'x' || m_n->m_te.m_tablero[1] == 'b') {
+				if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[2] == 'b')
 					contMe++;
 			}
 		}
 		//caso1.2
 		if (m_n->m_te.m_tablero[0] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[1] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[1] == 'o' || m_n->m_te.m_tablero[1] == 'b') {
+				if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[2] == 'b')
 					contYou++;
 			}
 		}
 		//caso 2.1
 		if (m_n->m_te.m_tablero[0] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[3] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[3] == 'x' || m_n->m_te.m_tablero[3] == 'b') {
+				if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[6] == 'b')
 					contMe++;
 			}
 		}
 		//caso 2.2
 		if (m_n->m_te.m_tablero[0] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[3] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[3] == 'o' || m_n->m_te.m_tablero[3] == 'b') {
+				if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[6] == 'b')
 					contYou++;
 			}
 		}
 		//caso 3.1
 		if (m_n->m_te.m_tablero[0] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[8] == 'b')
 					contMe++;
 			}
 		}
 		//caso 3.2
 		if (m_n->m_te.m_tablero[0] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[8] == 'b')
 					contYou++;
 			}
 		}
 		//caso 4.1
-		if (m_n->m_te.m_tablero[1] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[7] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[1] == 'x' || m_n->m_te.m_tablero[1] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[7] == 'x' || m_n->m_te.m_tablero[7] == 'b')
 					contMe++;
 			}
 		}
 		//caso 4.2
-		if (m_n->m_te.m_tablero[1] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[7] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[1] == 'o' || m_n->m_te.m_tablero[1] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[7] == 'o' || m_n->m_te.m_tablero[7] == 'b')
 					contYou++;
 			}
 		}
 		//caso 5.1
-		if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[5] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[2] == 'b') {
+			if (m_n->m_te.m_tablero[5] == 'x' || m_n->m_te.m_tablero[5] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[8] == 'b')
 					contMe++;
 			}
 		}
 		//caso 5.2
-		if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[5] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[2] == 'b') {
+			if (m_n->m_te.m_tablero[5] == 'o' || m_n->m_te.m_tablero[5] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[8] == 'b')
 					contYou++;
 			}
 		}
 		//caso 6.1
-		if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[2] == 'x' || m_n->m_te.m_tablero[2] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[6] == 'b')
 					contMe++;
 			}
 		}
 		//caso 6.2
-		if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[2] == 'o' || m_n->m_te.m_tablero[2] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[6] == 'b')
 					contYou++;
 			}
 		}
 		//caso 7.1
-		if (m_n->m_te.m_tablero[3] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[5] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[3] == 'x' || m_n->m_te.m_tablero[3] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'x' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[5] == 'x' || m_n->m_te.m_tablero[5] == 'b')
 					contMe++;
 			}
 		}
 		//caso 7.2
-		if (m_n->m_te.m_tablero[3] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[5] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[3] == 'o' || m_n->m_te.m_tablero[3] == 'b') {
+			if (m_n->m_te.m_tablero[4] == 'o' || m_n->m_te.m_tablero[4] == 'b') {
+				if (m_n->m_te.m_tablero[5] == 'o' || m_n->m_te.m_tablero[5] == 'b')
 					contYou++;
 			}
 		}
 		//caso 8.1
-		if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[7] == 'x' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[6] == 'x' || m_n->m_te.m_tablero[6] == 'b') {
+			if (m_n->m_te.m_tablero[7] == 'x' || m_n->m_te.m_tablero[7] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'x' || m_n->m_te.m_tablero[8] == 'b')
 					contMe++;
 			}
 		}
 		//caso 8.2
-		if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-			if (m_n->m_te.m_tablero[7] == 'o' || m_n->m_te.m_tablero[0] == 'b') {
-				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[0] == 'b')
+		if (m_n->m_te.m_tablero[6] == 'o' || m_n->m_te.m_tablero[6] == 'b') {
+			if (m_n->m_te.m_tablero[7] == 'o' || m_n->m_te.m_tablero[7] == 'b') {
+				if (m_n->m_te.m_tablero[8] == 'o' || m_n->m_te.m_tablero[8] == 'b')
 					contYou++;
 			}
 		}
@@ -487,34 +399,49 @@ public:
 			return minE;
 		}
 	}
-	int alphaBeta(Node* m_r, int profundidad, int alpha, int beta, bool maxomin) {
-		if (profundidad == 0 || gameOver(m_p_t))
+
+
+	int alphaBeta(Node* m_r, int profundidad, int alpha, int beta, bool maxomin, int& gg) {
+		//cout << "pensando\n";
+		if (profundidad == 0 || gameOver(m_r->m_te)) {
+			gg = m_r->indicePosicion;
 			return staticEvaluation(m_r);
+		}
 		if (maxomin) {
 			int maxE = -999999;
-			for (int i = 0; i < m_r->hijos.size() - 1; i++) {
-				int eval = alphaBeta(m_r->hijos[i], profundidad - 1, alpha, beta, false);
-				maxE = max(maxE, eval);
+			for (int i = 0; i < m_r->hijos.size(); i++) {
+				int eval = alphaBeta(m_r->hijos[i], profundidad - 1, alpha, beta, false, gg);
+				if (maxE < eval) {
+					maxE = eval;
+					index = m_r->hijos[i]->indicePosicion;
+				}
+
 				alpha = max(alpha, eval);
-				if (beta <= alpha)
+				if (beta <= alpha) {
+
 					break;
+				}
 			}
 			return maxE;
 		}
 		else {
 			int minE = 999999;
-			for (int i = 0; i < m_r->hijos.size() - 1; i++) {
-				int eval = alphaBeta(m_r->hijos[i], profundidad - 1, alpha, beta, true);
+			for (int i = 0; i < m_r->hijos.size(); i++) {
+				int eval = alphaBeta(m_r->hijos[i], profundidad - 1, alpha, beta, true, gg);
 				minE = min(minE, eval);
+				if (minE > eval) {
+					minE = eval;
+					index = m_r->hijos[i]->indicePosicion;
+				}
 				beta = min(beta, eval);
-				if (beta <= alpha)
+				if (beta <= alpha) {
 					break;
+				}
 			}
 			return minE;
 		}
 	}
 };
-
 
 class juego {
 public:
@@ -534,7 +461,6 @@ public:
 			jugador = 2; maquina = 1;
 		}
 	}
-
 	void jugada(int j) {
 		m_t.m_tablero[j] = 'x';
 		return;
@@ -546,37 +472,18 @@ public:
 		//m_t.m_tablero[m_posibilidades.minimax(m_posibilidades.root, prof, 1)] = 'o';
 		//n = m_posibilidades.minimax(m_posibilidades.root, prof, 1);
 		//alphabeta
-		m_t.m_tablero[m_posibilidades.alphaBeta(m_posibilidades.root, prof, -99999, +99999, 1)] = 'o';
+		int gg = 0;
+		int xxx = m_posibilidades.alphaBeta(m_posibilidades.root, prof, -99999, +99999, 1, gg);
+		m_t.m_tablero[gg] = 'o';
+		cout << gg << endl;
 		//n = m_posibilidades.minimax(m_posibilidades.root, prof, 1);
-		n = m_posibilidades.alphaBeta(m_posibilidades.root, prof, -99999, +99999, 1);
+		/*n = m_posibilidades.alphaBeta(m_posibilidades.root, prof, -99999, +99999, 1);*/
 		nJugadas++;
-		posiciones.push_back(n);
+		posiciones.push_back(gg);
 		return;
-
-
-
 	}
 	void beginGame() {
-		fin = gameOver(m_t);
 
-		while (!fin) {
-			if (jugador == 1) {
-				int n;
-				cin >> n;
-				jugada(n);
-				m_posibilidades.setTablero(m_t, m_posibilidades.root, 1);
-				respuesta(dificultad);
-				fin = gameOver(m_t);
-			}
-			else {
-				m_posibilidades.setTablero(m_t, m_posibilidades.root, 1);
-				respuesta(dificultad);
-				int n;
-				cin >> n;
-				jugada(n);
-				fin = gameOver(m_t);
-			}
-		}
 	}
 };
 
@@ -587,6 +494,105 @@ juego* j;
 ///////////////// PARTE GRAFICA ////////////////////////
 
 
+void dibujarTablero()
+{
+	glLineWidth(10);
+	glBegin(GL_LINES);
+	glColor3d(255, 255, 0);
+	glVertex2d(-125, 400);
+	glVertex2d(-125, -400);
+	glVertex2d(125, 400);
+	glVertex2d(125, -400);
+	glVertex2d(-400, 125);
+	glVertex2d(400, 125);
+	glVertex2d(-400, -125);
+	glVertex2d(400, -125);
+	glEnd();
+}
+
+void dibujarCirculo(int x, int y) {
+	glBegin(GL_LINE_LOOP);
+	glColor3d(255, 255, 255);
+	for (int i = 0; i <= 100; i++) {
+		glVertex2f(
+			x + (50 * cos(i * 2.0f * PI / 100)),
+			y + (50 * sin(i * 2.0f * PI / 100))
+		);
+	}
+	glEnd();
+}
+
+void dibujarX(int x, int y) {
+	glBegin(GL_LINES);
+	glColor3d(255, 0, 0);
+	glVertex2d(x + (-45), y + 45);
+	glVertex2d(x + 45, y + (-45));
+	glVertex2d(x + 45, y + 45);
+	glVertex2d(x + (-45), y + (-45));
+	glEnd();
+}
+
+void dibujarJugada(bool simb, int pos) {
+	switch (pos) {
+	case 0:
+		if (simb) dibujarX(-250, 250);
+		else dibujarCirculo(-250, 250);
+		break;
+	case 1:
+		if (simb) dibujarX(0, 250);
+		else dibujarCirculo(0, 250);
+		break;
+	case 2:
+		if (simb) dibujarX(250, 250);
+		else dibujarCirculo(250, 250);
+		break;
+	case 3:
+		if (simb) dibujarX(-250, 0);
+		else dibujarCirculo(-250, 0);
+		break;
+	case 4:
+		if (simb) dibujarX(0, 0);
+		else dibujarCirculo(0, 0);
+		break;
+	case 5:
+		if (simb) dibujarX(250, 0);
+		else dibujarCirculo(250, 0);
+		break;
+	case 6:
+		if (simb) dibujarX(-250, -250);
+		else dibujarCirculo(-250, -250);
+		break;
+	case 7:
+		if (simb) dibujarX(0, -250);
+		else dibujarCirculo(0, -250);
+		break;
+	case 8:
+		if (simb) dibujarX(250, -250);
+		else dibujarCirculo(250, -250);
+		break;
+
+	}
+}
+
+void dibujarGanador(int g) {
+	glClear(GL_COLOR_BUFFER_BIT);
+	char pc[17] = "Gano Computadora";
+	char j[13] = "Gano Jugador";
+	char empate[7] = "Empate";
+
+	glRasterPos2i(-200, 0);
+	if (g == 0)
+		for (int i = 0; i < 17; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, pc[i]);
+	else if (g == 1)
+		for (int i = 0; i < 13; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, j[i]);
+	else
+		for (int i = 0; i < 7; i++)
+			glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, empate[i]);
+
+
+}
 
 void OnMouseClick(int button, int state, int x, int y)
 {
@@ -602,8 +608,6 @@ void OnMouseMotion(int x, int y)
 	//hacer algo x,z cuando se mueve el mouse
 }
 
-
-
 void idle() { // AGREGAR ESTA FUNCION
 	glutPostRedisplay();
 }
@@ -615,7 +619,7 @@ void glPaint(void) {
 	glLoadIdentity();
 	glOrtho(-500.0f, 500.0f, -500.0f, 500.0f, -1.0f, 1.0f);
 
-
+	win = gameOver(j->m_t);
 	if (!win) {
 		dibujarTablero();
 
@@ -691,9 +695,6 @@ void glPaint(void) {
 		dibujarGanador(ganador);
 
 
-
-
-
 	glutSwapBuffers();
 }
 
@@ -716,83 +717,95 @@ GLvoid window_key(unsigned char key, int x, int y) {
 		exit(0);
 		break;
 	case KEY_0:
-			j->jugada(0);
-			nJugadas++;
-			posiciones.push_back(0);
-			/*j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);*/
-
+		j->jugada(0);
+		nJugadas++;
+		posiciones.push_back(0);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 		break;
 	case KEY_1:
-			j->jugada(1);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(1);
+		nJugadas++;
+		posiciones.push_back(1);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_2:
-			j->jugada(2);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(2);
+		nJugadas++;
+		posiciones.push_back(2);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_3:
-			j->jugada(3);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(3);
+		nJugadas++;
+		posiciones.push_back(3);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_4:
-			j->jugada(4);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(4);
+		nJugadas++;
+		posiciones.push_back(4);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_5:
-			j->jugada(5);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(5);
+		nJugadas++;
+		posiciones.push_back(5);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_6:
-			j->jugada(6);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(6);
+		nJugadas++;
+		posiciones.push_back(6);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_7:
-			j->jugada(7);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
+		j->jugada(7);
+		nJugadas++;
+		posiciones.push_back(7);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 
 		break;
 	case KEY_8:
-			j->jugada(8);
-			j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
-			j->respuesta(dificultad);
-
+		j->jugada(8);
+		nJugadas++;
+		posiciones.push_back(8);
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
+		j->respuesta(dificultad);
 		break;
 	default:
 		break;
 	}
 
 }
-//
-//el programa principal
-//
+
+///////////////// MAIN ////////////////////////
 
 
 
 int main(int argc, char** argv) {
 	cout << "Quien empieza el juego? \n 1: empiezas tu \n 2: empieza la maquina \n";
-	cin >> empieza;
-	
-	cout << "Escoje la dificultad del juego\n A un mayor número mayor dificultad.\n";
+	int n;
+	cin >> n;
+	cout << "Escoje la dificultad del juego\n A un mayor numero mayor dificultad.\n";
 	cin >> dificultad;
 
-	j = new juego(empieza);
-
-	if (empieza == 2) {
-		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1);
+	j = new juego(n);
+	if (n == 2) {
+		j->m_posibilidades.setTablero(j->m_t, j->m_posibilidades.root, 1, 1);
 		j->respuesta(dificultad);
 	}
 
@@ -813,6 +826,9 @@ int main(int argc, char** argv) {
 	glutMotionFunc(&OnMouseMotion);
 	glutIdleFunc(&idle);
 
+
+
+	//qt = new quadTree();
 	glutMainLoop(); //bucle de rendering
 	//no escribir nada abajo de mainloop
 	return 0;
